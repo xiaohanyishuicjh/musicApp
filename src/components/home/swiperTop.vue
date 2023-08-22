@@ -33,7 +33,7 @@ export default {
   },
 };
 </script>
-<style lang="less" scope>
+<style lang="less" scoped>
 #swiperTop{
 .van-swipe {
   width: 100%;

@@ -6,4 +6,10 @@ homeApi.getHomeBanner = function (type){
     url: `banner?type=${type}`,
  })
 };
+homeApi.getMusicList = function (number){
+   return service({
+      method: 'get',
+      url: `/personalized?limit=${number}`,
+   })
+  };
 export default homeApi;
