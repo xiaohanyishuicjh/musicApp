@@ -1,64 +1,28 @@
 <template>
-    <div class="musicList">
-        <div class="musicTop">
-            <div class="title">
-                发现好歌单
-            </div>
-            <div class="more">
-                查看更多
-            </div>
-        </div>
-        <div class="musicContent">
-        <van-swipe :loop="false" :width="150" class="musicSwpie" :show-indicators="false">
-            <van-swipe-item v-for="(item,index) in state.musicList" :key="index"> 
-                <router-link :to="{path:'/musicDetail',query:{id:item.id}}" class="routerLinkClass"></router-link>
-                <div class="musicImg">
-                    <img :src="item.picUrl" alt="">
-                </div>
-                <div class="playContent">
-                    <svg class="icon smallIcon" aria-hidden="true">
-                        <use xlink:href="#icon-zanting"></use>
-                    </svg>
-                    <div class="playNumber">
-                        {{changeCount(item.playCount)}}
-                    </div>
-                </div>
-                <div class="bottomWord" :title="item.name">
-                    <span>{{item.name}}</span>
-                </div>
-            </van-swipe-item>
-        </van-swipe>
-    </div>
+    <div class="musicDetail">
+        歌單详情页
     </div>
     
 </template>
 <script>
-import {reactive, onMounted} from "vue";
-import homeApi from "@/request/api/homeApi";
+import {onMounted} from "vue";
 export default {
   name: "swiperTop",
   components: {},
-  setup() {
-    const state = reactive(
-      {
-        musicList:[]
-      }
-    );
+  props: {
+    playList: {
+      type: Object,
+      default: () => {
+        return {};
+      },
+    }
+  },
+  setup(props) {
+    console.log(props.playList);
     onMounted(async ()=>{
       //获取网易云音乐的轮播图数据
-      let res = await homeApi.getMusicList(10);
-      console.log(res);
-      state.musicList = res.data.result ?? [];
+      
     });
-    function changeCount(num) {
-        if(num >= 100000000){
-            return `${(num/100000000).toFixed(1)}亿`;
-        }
-        else if(num>= 10000){
-            return (num/10000).toFixed(1)+'万';
-        }
-    }
-    return { state,changeCount };
   },
 };
 </script>
@@ -93,12 +57,6 @@ export default {
             position: relative;
             .van-swipe-item{
                 margin-right: .2rem;
-            }
-            .routerLinkClass{
-                position: absolute;
-                width: 100%;
-                display: inline-block;
-                height: 100%;
             }
             .musicImg{
                 width: 100%;
