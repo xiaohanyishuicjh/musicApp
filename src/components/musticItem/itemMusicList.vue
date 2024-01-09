@@ -23,7 +23,7 @@
     </div>
     <div class="songList">
       <div class="songItem" v-for="(item, index) in songList" :key="index">
-        <div class="songLeft">
+        <div class="songLeft" @click="playMusic(index)">
           <div class="songIndex">
             {{ index }}
           </div>
@@ -59,11 +59,20 @@
   </div>
 </template>
 <script>
+//import { mapMutations } from 'vuex';
+import { useStore } from 'vuex';
 export default {
   name: "itemMusicList",
   components: {},
+  
   setup(props) {
+    const store = useStore();
     console.log(props.songList);
+    let playMusic = (index) =>{
+      store.commit('setPlayList', props.songList);
+      store.commit('setPlayListIndex', index);
+    }
+    return {playMusic}
   },
   props: {
     songList: {
@@ -78,7 +87,15 @@ export default {
         return 0;
       },
     },
-  },
+  }
+  // methods:{
+  //   //...mapMutations(['setPlayList','setPlayListIndex']),
+  //   playMusic(index){
+  //     const store = useStore();
+  //     store.commit('setPlayList', this.songList);
+  //     store.commit('setPlayListIndex', index);
+  //   }
+  // }
 };
 </script>
 <style lang="less" scoped>

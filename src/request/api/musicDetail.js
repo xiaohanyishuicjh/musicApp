@@ -14,4 +14,11 @@ musicDtail.getMusicItemlist= function (data){
       url: `/playlist/track/all?id=${data.id}&limit=${data.limit}&offset=${data.offset}`,
    })
   };
+  //获取歌单所有歌曲
+musicDtail.getMusicItemSrcUrl= function (data){
+   return service({
+      method: 'get',
+      url: `/song/url/v1?id=${data.id}&level=${data.type}`,
+   })
+  };
 export default musicDtail;

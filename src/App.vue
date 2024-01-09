@@ -4,7 +4,18 @@
     <router-link to="/about">About</router-link>
   </nav> -->
   <router-view />
+  <itemMusicFooter />
+
 </template>
+<script>
+import itemMusicFooter from '@/components/musticItem/itemMusicFooter.vue';
+export default {
+  components: {
+    itemMusicFooter
+  },
+};
+</script>
+
 
 <style lang="less">
    *{
