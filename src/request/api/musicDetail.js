@@ -21,4 +21,11 @@ musicDtail.getMusicItemSrcUrl= function (data){
       url: `/song/url/v1?id=${data.id}&level=${data.type}`,
    })
   };
+  //获取歌词
+  musicDtail.getMusicItemLyric= function (id){
+   return service({
+      method: 'get',
+      url: `/lyric?id=${id}`,
+   })
+  };
 export default musicDtail;

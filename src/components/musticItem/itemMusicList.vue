@@ -147,8 +147,9 @@ export default {
 }
 .songList {
   width: 100%;
-  height: calc(100% - 0.8rem);
+  height: calc(100% - 2.2rem);
   padding: 0 0.3rem;
+  overflow-y: auto;
   .songItem {
     display: flex;
     justify-content: space-between;

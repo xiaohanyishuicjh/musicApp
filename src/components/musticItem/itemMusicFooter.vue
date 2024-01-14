@@ -1,7 +1,11 @@
 <template>
   <div class="itemMusicFooter">
     <div class="footerLeft">
-      <img :src="playList[0][playListIndex]?.al?.picUrl" alt="" />
+      <img
+        :src="playList[0][playListIndex]?.al?.picUrl"
+        alt=""
+        @click="setShowSongDetailContent"
+      />
       <div class="musicDescription">
         <p>{{ playList[0][playListIndex]?.name }}</p>
         <span>{{ "横滑切换上下首" }}</span>
@@ -28,25 +32,46 @@
         <use xlink:href="#icon-liebiao"></use>
       </svg>
     </div>
-    <audio ref="playAudio" :src="musicSrcUrl">
+    <audio
+      ref="playAudio"
+      :src="musicSrcUrl"
+      @canplay="ready"
+      @error="handleError"
+    >
       <!-- <source :src="musicSrcUrl" type="audio/mpeg"> -->
     </audio>
+    <van-popup
+      v-model:show="showSongDetailContent"
+      position="bottom"
+      :style="{ height: '100%', width: '100%' }"
+    >
+      <musicDetailContent
+        :musicInfo="playList[0][playListIndex]"
+        :isPlay="isShowPlay"
+        @playMusic="playMusic"
+        @stopMusic="stopMusic"
+      ></musicDetailContent>
+    </van-popup>
     <!-- <audio controls  ref="playAudio" src="../../../src/assets/music/一花一剑.flac"></audio> -->
   </div>
 </template>
 <script>
-import { watch, ref, computed } from "vue";
+import { watch, ref, computed, nextTick } from "vue";
 import musicDetail from "@/request/api/musicDetail";
+import musicDetailContent from "@/components/musticItem/musicDetailContent.vue";
 import { useStore } from "vuex";
 export default {
   name: "itemMusicFooter",
   setup() {
     // 使用 mapGetters 获取 users
     const store = useStore();
-
+     const currentTime = computed(() => store.state.currentTime);
     const playList = computed(() => store.state.playList);
     const playListIndex = computed(() => store.state.playListIndex);
     const isShowPlay = computed(() => store.state.isShowPlay);
+    let showSongDetailContent = computed(
+      () => store.state.showSongDetailContent
+    ); //歌曲详情页
     // 监听 users 的变化
     watch(
       () => playList,
@@ -57,7 +82,7 @@ export default {
         console.log(newValue.value[0][playListIndex.value].id, "12312");
         // console.log(playListIndex.value, "7898978");
         // console.log(toRaw(newValue._value)[0][playListIndex.value], "123121");
-        calcMusicSrcUrl(newValue.value[0][playListIndex.value].id);
+        -(newValue.value[0][playListIndex.value].id);
       },
       {
         deep: true,
@@ -77,8 +102,11 @@ export default {
       }
     );
     let musicSrcUrl = ref("");
+    let currentTimeInterVal =ref("");
     const playAudio = ref(null);
+    let songReady = ref(false);
     async function calcMusicSrcUrl(id) {
+      stopMusic();
       let data = {
         id: id,
         type: "standard",
@@ -88,85 +116,88 @@ export default {
       let url = resultData?.data?.data[0]?.url ?? "";
       console.log(url, "链接");
       musicSrcUrl.value = url;
+      songReady.value = false;
+      store.dispatch("getLyric", id);
     }
-    function playMusic() {
-      console.log(playAudio,"cjh")
-      playAudio.value.play()
-      
-          store.commit("setIsShowPlay", false);
-      // nextTick(() => {
-        
-      //     playAudio.value.play()
-      //     store.commit("setIsShowPlay", false);
-      // });
-    }
-    function stopMusic() {
-      playAudio.value.pause();
+    //播放音乐
+    async function playMusic() {
+      if (!songReady.value) {
+        return;
+      }
+      nextTick(() => {
+        if (playAudio.value.paused) {
+          //playAudio.value.load();
+          playAudio.value.muted = false;
+          let playPromise = playAudio.value.play();
+          if (playPromise) {
+            console.log("playPromise", playPromise);
+            playPromise
+              .then(() => {
+                console.log("开始音频播放");
+                store.commit("setIsShowPlay", false);
+                playAudio.value.play();
+                setMusicCurrentTime();
+              })
+              .catch((error) => {
+                console.log("音频播放失败", error);
+              });
+          }
+        } else {
+          playAudio.value.pause();
           store.commit("setIsShowPlay", true);
-      //console.log(proxy,"cjh")
-      // nextTick(() => {
-        
-      //     playAudio.value.pause();
-      //     store.commit("setIsShowPlay", true);
-        
-      // });
+        }
+      });
     }
-    
-    return { musicSrcUrl, playList, playListIndex, isShowPlay, playMusic, stopMusic,playAudio };
+    //暂停音乐
+    function stopMusic() {
+      if (playAudio.value.paused) {
+        //已经暂停了
+        store.commit("setIsShowPlay", true);
+      } else {
+        //未暂停
+        playAudio.value.pause();
+        store.commit("setIsShowPlay", true);
+      }
+      clearInterval(currentTimeInterVal);
+    }
+    function ready() {
+      songReady.value = true;
+      playMusic();
+    }
+    function handleError() {
+      songReady.value = true;
+    }
+    function setShowSongDetailContent() {
+      store.commit("setShowSongDetailContent", true);
+    }
+    //设置音乐当前播放的时间
+    function setMusicCurrentTime(){
+      currentTimeInterVal =setInterval(()=>{
+        store.commit("setCurrentTime", playAudio.value.currentTime);
+      },1000);
+      console.log("音乐当前播放的时间",playAudio.value.currentTime);
+    }
+    return {
+      musicSrcUrl,
+      playList,
+      playListIndex,
+      isShowPlay,
+      playMusic,
+      stopMusic,
+      playAudio,
+      ready,
+      handleError,
+      songReady,
+      showSongDetailContent,
+      setShowSongDetailContent,
+      setMusicCurrentTime,
+      currentTimeInterVal,
+      currentTime
+    };
   },
-  // computed:{
-  //   ...mapGetters(['playListIndex','isShowPlay','playList'])
-  // },
-  // data() {
-  //   return {
-  //     musicSrcUrl:''
-  //   };
-  // },
-  // watch:{
-  //   playListIndex: {
-  //     handle(){
-  //       console.log("下标");
-  //       this.calcMusicSrcUrl(this.playList[this.playListIndex].id);
-  //     },
-  //     immediate: true
-  //   },
-  //   playList: {
-  //     immediate: true,
-  //     deep: true,
-  //     handle(val){
-  //       console.log(this.playList[this.playListIndex],val,"表格");
-  //       this.calcMusicSrcUrl(this.playList[this.playListIndex].id);
-  //     }
-  //   }
-  // },
-  // created: function () {
-  //   console.log(this.playList[this.playListIndex],"表格cjh");
-  //    this.calcMusicSrcUrl(this.playList[this.playListIndex].id);
-  // },
-  // methods:{
-  //   ...mapMutations(['setIsShowPlay']),
-  //   playMusic(){
-  //     if(this.$refs.playAudio.paused){
-  //       this.$refs.playAudio.play();
-  //       this.setIsShowPlay(false)
-  //     }else {
-  //       this.$refs.playAudio.pause();
-  //       this.setIsShowPlay(true)
-  //     }
-  //   },
-  //   async calcMusicSrcUrl(id){
-  //     let data ={
-  //       id: id,
-  //       type: 'standard'
-  //     }
-  //     let resultData = await musicDetail.getMusicItemSrcUrl(data);
-  //     console.log(resultData,"歌曲信息");
-  //     let url = resultData?.data?.data[0]?.url ?? '';
-  //     console.log(url,"链接");
-  //     this.musicSrcUrl = url;
-  //   }
-
-  // }
+  components: {
+    musicDetailContent,
+  },
 };
 </script>
 <style lang="less" scoped>
