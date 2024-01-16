@@ -41,13 +41,13 @@
         :class="!isShowPlay ? 'img_ar_active' : 'img_ar_paused'"
       />
     </div>
-    <div class="musicLyric" ref="musicLyricDiv" v-show="isLyricShow" @click="setShowLyric">
+    <div class="musicLyric" ref='musicLyricDiv' v-show="isLyricShow" @click="setShowLyric">
       <div
         class="lyricInfo"
         v-for="(lyricItem, index) in lyricData"
         :key="index"
       >
-        <p :ref="'lyricWord'" :class="currentTime*1000>=lyricItem.time&&currentTime*1000<=lyricItem.nextTime?'active':''">{{ lyricItem.lrc }}</p>
+        <p ref='lyricWord' :class="currentTime*1000>=lyricItem.time&&currentTime*1000<=lyricItem.nextTime?'active':''">{{ lyricItem.lrc }}</p>
       </div>
     </div>
     <div class="detailFooter">
@@ -124,6 +124,7 @@ export default {
     Vue3Marquee,
   },
   setup(props, ctx) {
+    console.log("函数开始");
     let lyricWord = ref(null);
     let musicLyricDiv = ref(null);
      const currentTime = computed(() => store.state.currentTime);
@@ -174,9 +175,9 @@ export default {
             return lyricItem.className === 'active';
         });
         console.log(findItem);
-        // if(findItem&&findItem.offsetTop>300){
-        //     musicLyric.value.scrollTop = String(findItem.offsetTop-300);
-        // }
+        if(findItem&&findItem.offsetTop>300){
+            musicLyricDiv.value.scrollTop = String(findItem.offsetTop-300);
+        }
 
       },
       {
@@ -210,7 +211,8 @@ export default {
       lyricData,
       setShowLyric,
       currentTime,
-      lyricWord
+      lyricWord,
+      musicLyricDiv
     };
   },
 };
