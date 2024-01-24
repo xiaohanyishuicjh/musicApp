@@ -21,7 +21,7 @@
         >
       </div>
     </div>
-    <div class="songList">
+    <!-- <div class="songList">
       <div class="songItem" v-for="(item, index) in songList" :key="index">
         <div class="songLeft" @click="playMusic(index)">
           <div class="songIndex">
@@ -42,7 +42,6 @@
           </div>
         </div>
         <div class="songRight">
-          <!-- v-show="item.mv!==0" -->
           <div class="MvControl">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-bofangMV"></use>
@@ -55,22 +54,26 @@
           </div>
         </div>
       </div>
-    </div>
+    </div> -->
+  <musicSongList :song-list="songList" @playMusic="playMusic($event)"></musicSongList>
   </div>
 </template>
 <script>
-//import { mapMutations } from 'vuex';
+import musicSongList from '@/views/musicSongList.vue';
 import { useStore } from 'vuex';
 export default {
   name: "itemMusicList",
-  components: {},
+  components: {musicSongList},
   
   setup(props) {
     const store = useStore();
-    console.log(props.songList);
-    let playMusic = (index) =>{
-      store.commit('setPlayList', props.songList);
-      store.commit('setPlayListIndex', index);
+    console.log(props.songList,"歌曲列表数据");
+    let playMusic = (data) =>{
+      console.log(data,"歌曲传值列表数据");
+      let songList =props.songList;
+      console.log(songList,"歌曲列表数据2");
+      store.commit('setPlayList', songList);
+      store.commit('setPlayListIndex', data.index);
     }
     return {playMusic}
   },

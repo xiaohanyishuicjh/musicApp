@@ -90,7 +90,7 @@ export default {
     // if(!props.playList){
     //     //props.playList = JSON.parse(sessionStorage.getItem('musicDetail')).playList;
     // }
-    console.log(props.playList.creator);
+    console.log(props.playList,"歌曲信息");
     onMounted(async () => {
       //获取网易云音乐的轮播图数据
     });

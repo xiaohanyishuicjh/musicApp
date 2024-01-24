@@ -41,13 +41,28 @@
         :class="!isShowPlay ? 'img_ar_active' : 'img_ar_paused'"
       />
     </div>
-    <div class="musicLyric" ref='musicLyricDiv' v-show="isLyricShow" @click="setShowLyric">
+    <div
+      class="musicLyric"
+      ref="musicLyricDiv"
+      v-show="isLyricShow"
+      @click="setShowLyric"
+    >
       <div
         class="lyricInfo"
         v-for="(lyricItem, index) in lyricData"
         :key="index"
       >
-        <p ref='lyricWord' :class="currentTime*1000>=lyricItem.time&&currentTime*1000<=lyricItem.nextTime?'active':''">{{ lyricItem.lrc }}</p>
+        <p
+          ref="lyricWord"
+          :class="
+            currentTime * 1000 >= lyricItem.time &&
+            currentTime * 1000 <= lyricItem.nextTime
+              ? 'active'
+              : ''
+          "
+        >
+          {{ lyricItem.lrc }}
+        </p>
       </div>
     </div>
     <div class="detailFooter">
@@ -69,13 +84,34 @@
           <use xlink:href="#icon-xiangqing"></use>
         </svg>
       </div>
-      <div class="footerContent"></div>
+      <div class="footerContent">
+        <input
+          class="range"
+          type="range"
+          min="0"
+          :max="duration"
+          step="0.5"
+          v-model="currentTime"
+          @input="changeValue"
+        />
+      </div>
+      <!-- <van-progress :percentage="calcProgress" stroke-width="8" :show-pivot="false" /> -->
 
       <div class="footer">
-        <svg class="icon" aria-hidden="true">
+        <!-- 列表循环 -->
+        <svg class="icon" aria-hidden="true" v-show="songPlaySortMethods===0" @click="changeSongPlaySortMethods()">
           <use xlink:href="#icon-liebiaoxunhuan"></use>
         </svg>
-        <svg class="icon" aria-hidden="true">
+        <!-- 随机循环 -->
+        <svg class="icon" aria-hidden="true" v-show="songPlaySortMethods===2" @click="changeSongPlaySortMethods()">
+          <use xlink:href="#icon-suijixunhuan"></use>
+        </svg>
+        <!-- 单首循环 -->
+        <svg class="icon" aria-hidden="true" v-show="songPlaySortMethods===1" @click="changeSongPlaySortMethods()">
+          <use xlink:href="#icon-danshouxunhuanbofang"></use>
+        </svg>
+        <!-- 上一首 -->
+        <svg class="icon" aria-hidden="true" @click="setPlayMusicIndex(-1)">
           <use xlink:href="#icon-shangyishoushangyige"></use>
         </svg>
         <!-- 暂停 -->
@@ -98,10 +134,11 @@
         >
           <use xlink:href="#icon-bofang"></use>
         </svg>
-        <svg class="icon" aria-hidden="true">
+        <!-- 下一首 -->
+        <svg class="icon" aria-hidden="true" @click="setPlayMusicIndex(1)">
           <use xlink:href="#icon-xiayigexiayishou"></use>
         </svg>
-        <svg class="icon" aria-hidden="true">
+        <svg class="icon" aria-hidden="true" @click="showMusicPopover">
           <use xlink:href="#icon-playlist"></use>
         </svg>
       </div>
@@ -127,7 +164,25 @@ export default {
     console.log("函数开始");
     let lyricWord = ref(null);
     let musicLyricDiv = ref(null);
-     const currentTime = computed(() => store.state.currentTime);
+     const currentTime = computed({
+      get(){
+        return store.state.currentTime
+      },
+      set(newValue){
+            //store.commit("setCurrentTime", newValue);
+          store.commit("setPlayCurrentTime", newValue);
+      }
+     } );
+     const songPlaySortMethods = computed(() => store.state.songPlaySortMethods);
+     const playList = computed(() => store.state.playList);
+    const playListIndex = computed(() => store.state.playListIndex);
+     const duration = computed(() => store.state.duration);
+     let calcProgress = computed(() =>{
+      let currentTime = store.state.currentTime;
+      let duration = store.state.duration;
+      console.log(currentTime / duration,"进度值");
+      return (currentTime / duration)*100;
+     });
     let isLyricShow = ref(false);
     const lyricData = computed(() => {
       let lyricInfo = store.state.lyricData?.lyric ?? "";
@@ -152,8 +207,8 @@ export default {
         };
       });
       calcInfo.forEach((item, index) => {
-        if (index === calcInfo.length - 1) {
-          item.nextTime = 0; //下一句歌词的时间
+        if (index === calcInfo.length - 1 ||isNaN(Number(item.time))) {
+          item.nextTime = 9999999; //下一句歌词的时间
         } else {
           item.nextTime = calcInfo[index + 1].time; //下一句歌词的时间
         }
@@ -167,16 +222,41 @@ export default {
     watch(
       () => currentTime,
       () => {
+        if(currentTime.value===duration.value){
+          if(songPlaySortMethods.value===0){
+            //顺序播放
+            setPlayMusicIndex(1);//下一首
+          }
+          else if(songPlaySortMethods.value===1){
+            //单首循环
+            store.commit("setPlayCurrentTime", 0);
+            store.commit("setCurrentTime", 0);
+            playMusic();
+          }
+          else{
+            //随机循环
+            let randomNum = Math.floor(Math.random() * playList.value.length-1);
+            console.log(randomNum,"随机数");
+            store.commit("setPlayListIndex", randomNum);
+          }
+          if(musicLyricDiv.value){
+            musicLyricDiv.value.scrollTop = 0;
+          }
+          return;
+        }
         // 显示用户数据已修改的提示信息
         //showUserUpdateMessage.value = true;
-        console.log(lyricWord.value,"活动的歌词");
-        console.log(musicLyricDiv,"列表");
+        //console.log(lyricWord.value,"活动的歌词");
+        //console.log(musicLyricDiv,"列表");
         let findItem = lyricWord.value.find((lyricItem)=>{
             return lyricItem.className === 'active';
         });
         console.log(findItem);
         if(findItem&&findItem.offsetTop>300){
+          if(musicLyricDiv.value){
             musicLyricDiv.value.scrollTop = String(findItem.offsetTop-300);
+          }
+
         }
 
       },
@@ -202,6 +282,44 @@ export default {
     function setShowLyric() {
       isLyricShow.value = !isLyricShow.value;
     }
+    function changeValue(value){
+
+      console.log(value,"滑块的值");
+      let currentTime = value.target._value;
+      //store.commit("setCurrentTime", currentTime);
+      store.commit("setPlayCurrentTime", currentTime);
+    }
+    function setPlayMusicIndex(value){
+      console.log(value,"上一首还是下一首");
+      console.log(playList.value,playListIndex.value,"缓存歌曲的值");
+      //顺序播放的场景
+      if(value+playListIndex.value<0){
+        //上一首到最后一个
+        store.commit("setPlayListIndex", playList.value.length-1);
+      }
+      else if(value+playListIndex.value>playList.value.length-1){
+        //下一首到第一首
+        store.commit("setPlayListIndex", 0);
+      }
+      else{
+        //正常切换上下首
+        store.commit("setPlayListIndex", value+playListIndex.value);
+      }
+    }
+    function changeSongPlaySortMethods(){
+      let value =0;
+      if(songPlaySortMethods.value +1>2){
+        value =0;
+      }
+      else{
+        value = songPlaySortMethods.value +1;
+      }
+      store.commit("setSongPlaySortMethods", value);
+    }
+    function showMusicPopover(){
+      store.commit("setShowMusicListPopover", true);
+
+    }
     return {
       closeSongDetailContent,
       playMusic,
@@ -212,7 +330,14 @@ export default {
       setShowLyric,
       currentTime,
       lyricWord,
-      musicLyricDiv
+      musicLyricDiv,
+      calcProgress,
+      duration,
+      changeValue,
+      setPlayMusicIndex,
+      songPlaySortMethods,
+      changeSongPlaySortMethods,
+      showMusicPopover
     };
   },
 };
@@ -338,6 +463,18 @@ export default {
       height: 0.6rem;
     }
   }
+  .footerContent {
+    width: 100%;
+    height: 3rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    .range {
+      width: 100%;
+      height: 0.1rem;
+    }
+  }
   .footer {
     width: 100%;
     height: 1rem;
@@ -362,9 +499,9 @@ export default {
       color: #ffffffcc;
       margin-bottom: 0.8rem;
     }
-    .active{
-        color: #fff;
-        font-size: .6rem;
+    .active {
+      color: #fff;
+      font-size: 0.5rem;
     }
   }
 }

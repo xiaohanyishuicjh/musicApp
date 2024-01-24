@@ -29,7 +29,7 @@ export default {
       let id =useRoute().query.id;
       //获取歌单详情
       let musicDetailData = await musicDetail.getMusicDetail(id);
-      console.log(musicDetailData,"数据");
+      console.log(musicDetailData,"歌曲数据");
       console.log(id);
       state.playList = musicDetailData.data.playlist;
       //sessionStorage.setItem("musicDetail",JSON.stringify(state));
@@ -44,7 +44,7 @@ export default {
        let musicList = await musicDetail.getMusicItemlist(paramsData);
        state.songList = musicList.data.songs;
        songIsPedding.value = true;
-       console.log(musicList,"歌曲数据");
+       console.log(musicList,"歌曲数据2");
     });
     return {state,detailIsPedding,songIsPedding}
   },

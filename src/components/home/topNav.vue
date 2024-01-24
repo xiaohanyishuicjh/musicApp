@@ -6,12 +6,12 @@
       </svg>
     </div>
     <div class="centerControl">
-      <span>我的</span>
+      <span @click="goToUserInfo">我的</span>
       <span>发现</span>
       <span>云村</span>
       <span>视频</span>
     </div>
-    <div class="search">
+    <div class="search" @click="goToSearch">
       <svg class="icon" aria-hidden="true">
         <use xlink:href="#icon-chaxun"></use>
       </svg>
@@ -20,10 +20,28 @@
 </template>
 
 <script>
+import {useRouter} from "vue-router"
 // @ is an alias to /src
+//import { ref } from "vue";
 
 export default {
   name: "HomeView",
+   setup() {
+    const router = useRouter();
+    // 使用 mapGetters 获取 users
+    //const store = useStore();
+    function goToSearch() {
+      // 跳转到搜索页面
+      router.push({ name: "musicSearch" });
+    }
+    function goToUserInfo (){
+      router.push({ name: "userInfo" });
+    }
+    return {
+      goToSearch,
+      goToUserInfo
+    };
+  },
   components: {},
 };
 </script>

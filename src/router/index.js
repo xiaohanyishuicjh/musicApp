@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-
+let isLogin = true;
 const routes = [
   {
     path: '/',
@@ -22,6 +22,40 @@ const routes = [
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '../views/musicDetail.vue')
+  },
+  {
+    path: '/musicSearch',
+    name: 'musicSearch',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "about" */ '../views/musicSearch.vue')
+  },
+  {
+    path: '/login',
+    name: 'login',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "about" */ '@/components/login/login.vue')
+  },
+  {
+    path: '/userInfo',
+    name: 'userInfo',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "about" */ '@/components/userInfo/userInfo.vue'),
+    beforeEnter: (to,form,next) => {
+      console.log(to,"信息")
+      if(!isLogin && to.path === '/userInfo'){
+        console.log(to,"信息")
+        next('/login');
+      }
+      else{
+        next();
+      }
+    }
   }
 ]
 

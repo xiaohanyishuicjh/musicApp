@@ -2,12 +2,12 @@
   <div class="itemMusicFooter">
     <div class="footerLeft">
       <img
-        :src="playList[0][playListIndex]?.al?.picUrl"
+        :src="playList[playListIndex]?.al?.picUrl"
         alt=""
         @click="setShowSongDetailContent"
       />
       <div class="musicDescription">
-        <p>{{ playList[0][playListIndex]?.name }}</p>
+        <p>{{ playList[playListIndex]?.name }}</p>
         <span>{{ "横滑切换上下首" }}</span>
       </div>
     </div>
@@ -28,7 +28,7 @@
       >
         <use xlink:href="#icon-bofang"></use>
       </svg>
-      <svg class="icon" aria-hidden="true">
+      <svg class="icon" aria-hidden="true" @click="showMusicPopover">
         <use xlink:href="#icon-liebiao"></use>
       </svg>
     </div>
@@ -41,22 +41,33 @@
       <!-- <source :src="musicSrcUrl" type="audio/mpeg"> -->
     </audio>
     <van-popup
+    ref="SongDetailContent"
       v-model:show="showSongDetailContent"
       position="bottom"
       :style="{ height: '100%', width: '100%' }"
     >
       <musicDetailContent
-        :musicInfo="playList[0][playListIndex]"
+        :musicInfo="playList[playListIndex]"
         :isPlay="isShowPlay"
         @playMusic="playMusic"
         @stopMusic="stopMusic"
       ></musicDetailContent>
+    </van-popup>
+    <van-popup
+    ref="SongList"
+      v-model:show="showMusicListPopover"
+      @click-overlay="setShowMusicListPopover(false)"
+      position="bottom"
+      :style="{ height: '70%', width: '100%' }"
+    >
+      <musicSongList v-if="showMusicListPopover" :song-list="playList" @playMusic="setMusic($event)"></musicSongList>
     </van-popup>
     <!-- <audio controls  ref="playAudio" src="../../../src/assets/music/一花一剑.flac"></audio> -->
   </div>
 </template>
 <script>
 import { watch, ref, computed, nextTick } from "vue";
+import musicSongList from '@/views/musicSongList.vue';
 import musicDetail from "@/request/api/musicDetail";
 import musicDetailContent from "@/components/musticItem/musicDetailContent.vue";
 import { useStore } from "vuex";
@@ -65,13 +76,18 @@ export default {
   setup() {
     // 使用 mapGetters 获取 users
     const store = useStore();
-     const currentTime = computed(() => store.state.currentTime);
+    const currentTime = computed(() => store.state.currentTime);
+    const showMusicListPopover = computed(() => store.state.showMusicListPopover);
+    const playCurrentTime = computed(() => store.state.playCurrentTime);
     const playList = computed(() => store.state.playList);
     const playListIndex = computed(() => store.state.playListIndex);
     const isShowPlay = computed(() => store.state.isShowPlay);
+    const duration = computed(() => store.state.duration);
     let showSongDetailContent = computed(
       () => store.state.showSongDetailContent
-    ); //歌曲详情页
+    );
+    
+    //歌曲详情页
     // 监听 users 的变化
     watch(
       () => playList,
@@ -79,10 +95,10 @@ export default {
         // 显示用户数据已修改的提示信息
         //showUserUpdateMessage.value = true;
         console.log(newValue, "cjh2");
-        console.log(newValue.value[0][playListIndex.value].id, "12312");
+        console.log(newValue.value[playListIndex.value].id, "12312");
         // console.log(playListIndex.value, "7898978");
         // console.log(toRaw(newValue._value)[0][playListIndex.value], "123121");
-        -(newValue.value[0][playListIndex.value].id);
+        calcMusicSrcUrl(playList.value[playListIndex.value].id);
       },
       {
         deep: true,
@@ -95,14 +111,51 @@ export default {
         //showUserUpdateMessage.value = true;
         console.log(newValue, "cjh");
         console.log(playList, "cjh");
-        calcMusicSrcUrl(playList.value[0][newValue.value].id);
+        calcMusicSrcUrl(playList.value[newValue.value].id);
       },
       {
         deep: true,
       }
     );
+
+    watch(
+      () => playCurrentTime,
+      () => {
+        //时间变化并且在播放中
+
+        if (
+          !playAudio.value.paused &&
+          playAudio.value.readyState > 2 &&
+          playAudio.value.currentTime !== playCurrentTime.value
+        ) {
+          console.log(playCurrentTime.value, "当前的时间");
+          playAudio.value.currentTime = playCurrentTime.value;
+          playMusic();
+        }
+      },
+      {
+        deep: true,
+      }
+    );
+
+    watch(
+      () => currentTime,
+      () => {
+        //时间变化并且在播放中
+        console.log()
+        if(currentTime.value===duration.value){
+          clearInterval(currentTimeInterVal);
+        }
+        
+        
+      },
+      {
+        deep: true,
+      }
+    );
+
     let musicSrcUrl = ref("");
-    let currentTimeInterVal =ref("");
+    let currentTimeInterVal = ref("");
     const playAudio = ref(null);
     let songReady = ref(false);
     async function calcMusicSrcUrl(id) {
@@ -116,6 +169,9 @@ export default {
       let url = resultData?.data?.data[0]?.url ?? "";
       console.log(url, "链接");
       musicSrcUrl.value = url;
+      store.commit("setIsShowPlay", false);
+      store.commit("setCurrentTime", 0);
+      store.commit("setPlayCurrentTime", 0);
       songReady.value = false;
       store.dispatch("getLyric", id);
     }
@@ -137,6 +193,7 @@ export default {
                 store.commit("setIsShowPlay", false);
                 playAudio.value.play();
                 setMusicCurrentTime();
+                setMusicDuration();
               })
               .catch((error) => {
                 console.log("音频播放失败", error);
@@ -171,11 +228,26 @@ export default {
       store.commit("setShowSongDetailContent", true);
     }
     //设置音乐当前播放的时间
-    function setMusicCurrentTime(){
-      currentTimeInterVal =setInterval(()=>{
-        store.commit("setCurrentTime", playAudio.value.currentTime);
-      },1000);
-      console.log("音乐当前播放的时间",playAudio.value.currentTime);
+    function setMusicCurrentTime() {
+      currentTimeInterVal = setInterval(() => {
+        store.commit("setCurrentTime", playAudio?.value?.currentTime ?? 0);
+      }, 1000);
+      console.log("音乐当前播放的时间", playAudio?.value?.currentTime ?? 0);
+    }
+    function setMusicDuration() {
+      console.log("音乐总时长", playAudio?.value?.duration ?? 0);
+      store.commit("setDuration", playAudio?.value?.duration);
+    }
+    function setShowMusicListPopover(value){
+      store.commit("setShowMusicListPopover", value);
+    }
+    function setMusic(data){
+      console.log(data,"歌曲传值列表数据");
+      store.commit('setPlayListIndex', data.index);
+    }
+    function showMusicPopover(){
+      store.commit("setShowMusicListPopover", true);
+
     }
     return {
       musicSrcUrl,
@@ -192,11 +264,17 @@ export default {
       setShowSongDetailContent,
       setMusicCurrentTime,
       currentTimeInterVal,
-      currentTime
+      currentTime,
+      playCurrentTime,
+      showMusicListPopover,
+      setShowMusicListPopover,
+      setMusic,
+      showMusicPopover
     };
   },
   components: {
     musicDetailContent,
+    musicSongList
   },
 };
 </script>
@@ -234,5 +312,11 @@ export default {
     width: 0.6rem;
     height: 0.6rem;
   }
+  .songList{
+    width: 100%;
+    height: 100%;
+    padding: 0 0.3rem;
+    overflow-y: auto;
+}
 }
 </style>

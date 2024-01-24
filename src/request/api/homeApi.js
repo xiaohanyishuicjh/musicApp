@@ -12,4 +12,11 @@ homeApi.getMusicList = function (number){
       url: `/personalized?limit=${number}`,
    })
   };
+  //搜索歌曲
+  homeApi.getSearchInfo= function (word){
+   return service({
+      method: 'get',
+      url: `/search?keywords=${word}`,
+   })
+  };
 export default homeApi;

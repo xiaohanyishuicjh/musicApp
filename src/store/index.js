@@ -16,7 +16,11 @@ export default createStore({
     isShowPlay: true,
     showSongDetailContent: false,//是否显示歌曲详情页
     lyricData:{},//歌词信息
-    currentTime: 0//歌曲时间
+    currentTime: 0,//歌曲时间
+    duration: 0,//歌曲总时长
+    playCurrentTime: 0,
+    songPlaySortMethods: 0 ,//0表示列表循环,1表示单首循环2表示随机循环
+    showMusicListPopover:false //是否显示音乐列表popover
   },
   getters: {
     playList(state){
@@ -38,8 +42,12 @@ export default createStore({
       state.isShowPlay = data;
     },
     setPlayList(state,data){
-      console.log(data,"数据cjh2");
-      state.playList.splice(0,state.playList.length,data);
+      console.log(data,"歌曲信息数据");
+      state.playList = data
+    },
+    pushPlayList(state,data){
+      console.log(data,"歌曲數據");
+      state.playList.push(data);
     },
     setPlayListIndex(state,data){
       console.log(data,"下标");
@@ -58,6 +66,25 @@ export default createStore({
     setCurrentTime(state,data){
       console.log(data,"当前的时间");
       state.currentTime = data;//默认为0
+    },
+    //设置歌曲总时长
+    setDuration(state,data){
+      console.log(data,"歌曲总时长");
+      state.duration = data;//默认为0
+    },
+    //设置播放的时间
+    setPlayCurrentTime(state,data){
+      console.log(data,"当前的歌曲播放时间");
+      state.playCurrentTime = data;//默认为0
+    },
+    //设置歌曲的播放循环方式
+    setSongPlaySortMethods(state,data){
+      console.log(data,"设置歌曲的播放循环方式值");
+      state.songPlaySortMethods = data;//默认为0
+    },
+    setShowMusicListPopover(state,data){
+      console.log(data,"是否显示音乐列表popover");
+      state.showMusicListPopover = data;
     }
   },
   actions: {
