@@ -89,29 +89,37 @@ export default {
     
     //歌曲详情页
     // 监听 users 的变化
+    // watch(
+    //   () => playList,
+    //   (newValue) => {
+    //     // 显示用户数据已修改的提示信息
+    //     //showUserUpdateMessage.value = true;
+    //     console.log(newValue, "cjh2");
+    //     console.log(newValue.value[playListIndex.value].id, "12312");
+    //     // console.log(playListIndex.value, "7898978");
+    //     // console.log(toRaw(newValue._value)[0][playListIndex.value], "123121");
+    //     calcMusicSrcUrl(playList.value[playListIndex.value].id);
+    //   },
+    //   {
+    //     deep: true,
+    //   }
+    // );
     watch(
-      () => playList,
-      (newValue) => {
+      () => [playListIndex,playList],
+      () => {
+        // [playListIndexNew,playListNew],[playListIndexOld,playListOld]
         // 显示用户数据已修改的提示信息
         //showUserUpdateMessage.value = true;
-        console.log(newValue, "cjh2");
-        console.log(newValue.value[playListIndex.value].id, "12312");
-        // console.log(playListIndex.value, "7898978");
-        // console.log(toRaw(newValue._value)[0][playListIndex.value], "123121");
-        calcMusicSrcUrl(playList.value[playListIndex.value].id);
-      },
-      {
-        deep: true,
-      }
-    );
-    watch(
-      () => playListIndex,
-      (newValue) => {
-        // 显示用户数据已修改的提示信息
-        //showUserUpdateMessage.value = true;
-        console.log(newValue, "cjh");
+        // if(playListIndexOld.value===playListIndexNew.value&&playListOld.value.length===playListNew.value.length&&){
+        //   //说明歌曲数据数组变化
+        //   calcMusicSrcUrl(playList.value[playListIndex.value].id);
+        // }
+        // else{
+
+        // }
+        console.log(playList.value, "cjh");
         console.log(playList, "cjh");
-        calcMusicSrcUrl(playList.value[newValue.value].id);
+        calcMusicSrcUrl(playList.value[playListIndex.value].id);
       },
       {
         deep: true,
@@ -162,7 +170,7 @@ export default {
       stopMusic();
       let data = {
         id: id,
-        type: "standard",
+        type: "lossless",
       };
       let resultData = await musicDetail.getMusicItemSrcUrl(data);
       console.log(resultData, "歌曲信息");

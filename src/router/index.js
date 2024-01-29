@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-let isLogin = true;
+import store from "@/store/index.js";
 const routes = [
   {
     path: '/',
@@ -47,8 +47,8 @@ const routes = [
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "about" */ '@/components/userInfo/userInfo.vue'),
     beforeEnter: (to,form,next) => {
-      console.log(to,"信息")
-      if(!isLogin && to.path === '/userInfo'){
+      console.log(store,"信息")
+      if(!store.state.isLogin && to.path === '/userInfo'){
         console.log(to,"信息")
         next('/login');
       }

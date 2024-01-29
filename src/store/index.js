@@ -20,7 +20,8 @@ export default createStore({
     duration: 0,//歌曲总时长
     playCurrentTime: 0,
     songPlaySortMethods: 0 ,//0表示列表循环,1表示单首循环2表示随机循环
-    showMusicListPopover:false //是否显示音乐列表popover
+    showMusicListPopover:false, //是否显示音乐列表popover
+    isLogin: false //是否登录
   },
   getters: {
     playList(state){
@@ -85,6 +86,10 @@ export default createStore({
     setShowMusicListPopover(state,data){
       console.log(data,"是否显示音乐列表popover");
       state.showMusicListPopover = data;
+    },
+    setIsLogin(state,data){
+      console.log(data,"是否登录");
+      state.isLogin = data;
     }
   },
   actions: {
