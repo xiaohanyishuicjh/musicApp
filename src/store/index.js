@@ -1,5 +1,5 @@
 import { createStore } from 'vuex'
-import musicDetail from "@/request/api/musicDetail";
+import musicDetail from "@/request/api/wyMusicDetail";
 export default createStore({
   state: {
     playList: [{
@@ -87,6 +87,7 @@ export default createStore({
       console.log(data,"是否显示音乐列表popover");
       state.showMusicListPopover = data;
     },
+    //设置登录信息
     setIsLogin(state,data){
       console.log(data,"是否登录");
       state.isLogin = data;

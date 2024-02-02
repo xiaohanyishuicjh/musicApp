@@ -44,12 +44,16 @@ import userInfoApi from "@/request/api/userInfoApi";
 import { showNotify } from "vant";
 import { ref,onMounted, onUnmounted } from "vue";
 import LocalCache from "@/util/localStorageCache";
+import { useStore } from "vuex";
+import {useRouter} from "vue-router"
 export default {
   name: "LoginPage",
   props: {
     msg: String,
   },
   setup() {
+    const router = useRouter();
+    const store = useStore();
     const phoneNumber = ref("");
     const captcha = ref("");
     const qrCodeKey = ref("");
@@ -111,12 +115,22 @@ export default {
         if (statusRes.data.code === 803) {
           // 这一步会返回cookie
           clearInterval(timer.value)
-          alert('授权登录成功')
+          showNotify({
+            message: "登录成功",
+            color: "#fff",
+            background: "#07c160",
+            className: "loginNotify",
+          });
           let loginStatusRes = await userInfoApi.getLoginStatus(statusRes.data.cookie);
           console.log(loginStatusRes, "登录状态");
-          LocalCache.setCath('cookie', statusRes.data.cookie)
+          let wyUid = loginStatusRes?.data?.data?.account?.id ?? '';
+          LocalCache.setCath('cookie', statusRes.data.cookie);
+          LocalCache.setCath('wyUid', wyUid);
+          LocalCache.setCath('isLogin', true);
+          store.commit("setIsLogin", true);//设置登录状态
+          router.push({ name: "userInfo" });//跳转到用户信息页面
         }
-      }, 16000)
+      }, 8000)
     }
     onMounted(async ()=>{
       //获取qrCode

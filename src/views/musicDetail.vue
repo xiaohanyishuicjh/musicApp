@@ -10,7 +10,7 @@ import itemMusicTop from '@/components/musticItem/itemMusicTop.vue'
 import itemMusicList from '@/components/musticItem/itemMusicList.vue'
 import {useRoute} from "vue-router";
 import {onMounted, reactive,ref} from "vue";
-import musicDetail from "@/request/api/musicDetail";
+import musicDetail from "@/request/api/wyMusicDetail";
 export default {
   name: "swiperTop",
   components: {

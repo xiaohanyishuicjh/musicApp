@@ -1,6 +1,6 @@
 import axios from "axios";
 export const wyService = axios.create({
-    baseURL: "http://localhost:3000",
+    baseURL: "http://192.168.31.66:3000",
     timeout: 8000,
     withCredentials: true, //关键
 });

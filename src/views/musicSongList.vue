@@ -26,7 +26,7 @@
           </div>
           <div class="songRight">
             <!-- v-show="item.mv!==0" -->
-            <div class="MvControl" v-show="item.mvid !== 0">
+            <div class="MvControl">
               <svg class="icon" aria-hidden="true">
                 <use xlink:href="#icon-bofangMV"></use>
               </svg>

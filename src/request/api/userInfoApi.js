@@ -57,4 +57,24 @@ userInfoApi.checkQrCodeStatus = function (key) {
       url: `/login/qr/check?key=${key}&timestamp=${Date.now()}&noCookie=true`
     });
   }
+
+//获取用户信息 , 歌单，收藏，mv, dj 的数量，感觉没啥用
+userInfoApi.getUserInfo = function () {
+  return musicApi.wyService({
+    url: `/user/subcount`,
+  });
+}
+  //获取用户信息
+userInfoApi.getUserInfoByUserId = function (id) {
+  return musicApi.wyService({
+    url: `/user/detail?uid=${id}`
+  });
+}
+
+  //获取用户收藏的歌单
+  userInfoApi.getUserPlayList = function (id) {
+    return musicApi.wyService({
+      url: `/user/playlist?uid=${id}`
+    });
+  }
 export default userInfoApi;

@@ -35,8 +35,8 @@
     <audio
       ref="playAudio"
       :src="musicSrcUrl"
-      @canplay="ready"
       @error="handleError"
+      @ended ="handleEnded"
     >
       <!-- <source :src="musicSrcUrl" type="audio/mpeg"> -->
     </audio>
@@ -66,16 +66,19 @@
   </div>
 </template>
 <script>
-import { watch, ref, computed, nextTick } from "vue";
+import { watch, ref, computed,onMounted,onUnmounted} from "vue";
 import musicSongList from '@/views/musicSongList.vue';
-import musicDetail from "@/request/api/musicDetail";
+import musicDetail from "@/request/api/wyMusicDetail";
+import qqMusicDetail from "@/request/api/qqMusicDetail";
 import musicDetailContent from "@/components/musticItem/musicDetailContent.vue";
 import { useStore } from "vuex";
+import checkIsIOS from "@/util/util";
 export default {
   name: "itemMusicFooter",
   setup() {
     // 使用 mapGetters 获取 users
     const store = useStore();
+    const isIos = ref(false);
     const currentTime = computed(() => store.state.currentTime);
     const showMusicListPopover = computed(() => store.state.showMusicListPopover);
     const playCurrentTime = computed(() => store.state.playCurrentTime);
@@ -119,7 +122,7 @@ export default {
         // }
         console.log(playList.value, "cjh");
         console.log(playList, "cjh");
-        calcMusicSrcUrl(playList.value[playListIndex.value].id);
+        calcMusicSrcUrl(playList.value[playListIndex.value]);
       },
       {
         deep: true,
@@ -138,7 +141,7 @@ export default {
         ) {
           console.log(playCurrentTime.value, "当前的时间");
           playAudio.value.currentTime = playCurrentTime.value;
-          playMusic();
+          //playMusic();
         }
       },
       {
@@ -151,9 +154,9 @@ export default {
       () => {
         //时间变化并且在播放中
         console.log()
-        if(currentTime.value===duration.value){
-          clearInterval(currentTimeInterVal);
-        }
+        // if(currentTime.value===duration.value){
+        //   clearInterval(currentTimeInterVal);
+        // }
         
         
       },
@@ -164,12 +167,66 @@ export default {
 
     let musicSrcUrl = ref("");
     let currentTimeInterVal = ref("");
+    let playInterVal = ref("");
     const playAudio = ref(null);
     let songReady = ref(false);
-    async function calcMusicSrcUrl(id) {
+    onMounted(()=>{
+      isIos.value = checkIsIOS();
+      console.log(isIos.value,"是否是ios")
+    });
+    onUnmounted(()=>{
+      if(playInterVal.value){
+        clearInterval(playInterVal.value)
+      }
+      if(currentTimeInterVal.value){
+        clearInterval(currentTimeInterVal.value)
+      }
+      
+    })
+//     functionaudioAutoPlay(id){
+//       varaudio = document.getElementById(id),
+
+//       play =function(){
+//       audio.play();
+
+//       document.removeEventListener("touchstart",play,false);
+
+//       };
+
+//       audio.play();
+
+//       document.addEventListener("WeixinJSBridgeReady",function() {
+//       play();
+
+//       },false);
+
+//       document.addEventListener('YixinJSBridgeReady',function() {
+//       play();
+
+//       },false);
+
+//       document.addEventListener("touchstart",play,false);
+
+//       }
+
+// audioAutoPlay('myAudio');
+      function handleEnded() {
+        store.commit("setCurrentTime", duration.value ?? 0);
+        clearInterval(currentTimeInterVal.value)
+      }
+    async function calcMusicSrcUrl(musicData) {
       stopMusic();
+      if(musicData.musicType==='qq'){
+        let data = {
+        id: musicData.mid,
+        type: "128",
+      };
+      let resultData = await qqMusicDetail.getMusicItemSrcUrl(data);
+      console.log(resultData, "歌曲信息");
+      }
+      else{
       let data = {
-        id: id,
+        id: musicData.id,
         type: "lossless",
       };
       let resultData = await musicDetail.getMusicItemSrcUrl(data);
@@ -177,22 +234,18 @@ export default {
       let url = resultData?.data?.data[0]?.url ?? "";
       console.log(url, "链接");
       musicSrcUrl.value = url;
+      playAudio.value.load();
       store.commit("setIsShowPlay", false);
       store.commit("setCurrentTime", 0);
       store.commit("setPlayCurrentTime", 0);
       songReady.value = false;
-      store.dispatch("getLyric", id);
-    }
-    //播放音乐
-    async function playMusic() {
-      if (!songReady.value) {
-        return;
+      store.dispatch("getLyric", musicData.id);
+      playMusic();
       }
-      nextTick(() => {
-        if (playAudio.value.paused) {
-          //playAudio.value.load();
-          playAudio.value.muted = false;
-          let playPromise = playAudio.value.play();
+      
+    }
+    function audioPlay(){
+      let playPromise = playAudio.value.play();
           if (playPromise) {
             console.log("playPromise", playPromise);
             playPromise
@@ -207,11 +260,61 @@ export default {
                 console.log("音频播放失败", error);
               });
           }
+    }
+    //播放音乐
+    async function playMusic() {
+      // if (!songReady.value) {
+      //   return;
+      // }
+      //!playAudio.value.ended
+      //playAudio.value.currentTime > 0
+      //alert("触发了播放音乐...");
+        
+        playAudio.value.muted = false;
+        let readyState = playAudio?.value?.readyState?? 0;
+        
+        let isLoaded = readyState >= 1;
+        if (!isLoaded) {
+
+          playInterVal.value = setInterval(() => {
+            let readyState = playAudio?.value?.readyState?? 0;
+            let isLoaded = readyState >= 1;
+            //alert(readyState, "readyState");
+            if(isLoaded){
+              audioPlay();
+              if(playInterVal.value){
+                console.log('清除定时器');
+                clearInterval(playInterVal.value)
+              }
+            }
+            else{
+              
+              console.log('音乐加载中');
+            }
+        
+      }, 150);
+          //playAudio.value.load();
+          //readyState 0没有是否准备音频数据好的信息  1音视频已经加载好  2 当前可用，下一毫秒不可用 3 当前和下一毫秒可用 4足够数据可用
+          //var isPlaying = playAudio.value.currentTime > 0 && !playAudio.value.paused && !playAudio.value.ended && playAudio.value.readyState > 2;
+          // if (!isPlaying) {
+          // setTimeout(function () {
+          //   playAudio.value.play().catch(function (e) {
+          // console.log("", e.message);
+          // console.log("", e.description);
+          // });
+          // }, 150);
+          // } else {
+          // console.log("网络缓慢，正在加载音频...");
+          // }
+          
+
+
+          
         } else {
-          playAudio.value.pause();
-          store.commit("setIsShowPlay", true);
+          audioPlay();
+          // playAudio.value.pause();
+          // store.commit("setIsShowPlay", true);
         }
-      });
     }
     //暂停音乐
     function stopMusic() {
@@ -225,10 +328,10 @@ export default {
       }
       clearInterval(currentTimeInterVal);
     }
-    function ready() {
-      songReady.value = true;
-      playMusic();
-    }
+    // function ready() {
+    //   //songReady.value = true;
+    //   playMusic();
+    // }
     function handleError() {
       songReady.value = true;
     }
@@ -265,19 +368,22 @@ export default {
       playMusic,
       stopMusic,
       playAudio,
-      ready,
       handleError,
       songReady,
       showSongDetailContent,
       setShowSongDetailContent,
       setMusicCurrentTime,
       currentTimeInterVal,
+      playInterVal,
       currentTime,
       playCurrentTime,
       showMusicListPopover,
       setShowMusicListPopover,
       setMusic,
-      showMusicPopover
+      showMusicPopover,
+      isIos,
+      audioPlay,
+      handleEnded
     };
   },
   components: {

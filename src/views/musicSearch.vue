@@ -8,14 +8,14 @@
       <van-search
         v-model="searchWord"
         placeholder="请输入搜索关键词"
-        @search="onSearch"
+        @search="onSearch(musicSerachType)"
         @cancel="onCancel"
       >
-        <template #right-icon>
+        <!-- <template #right-icon>
           <div @click="MusicTypeChange">
             {{ musicSerachType ? "网易云音乐" : "qq音乐" }}
           </div>
-        </template>
+        </template> -->
       </van-search>
       <div class="rightSearch" @click="onSearch(musicSerachType)">搜索</div>
     </div>
@@ -89,7 +89,8 @@ import { ref, onMounted, computed, reactive } from "vue";
 import musicSongList from "@/views/musicSongList.vue";
 import LocalCache from "@/util/localStorageCache";
 import homeApi from "@/request/api/homeApi";
-import musicDetail from "@/request/api/musicDetail";
+import musicDetail from "@/request/api/wyMusicDetail";
+import qqMusicDetail from "@/request/api/qqMusicDetail";
 import { useStore } from "vuex";
 export default {
   name: "musicSearch",
@@ -143,8 +144,18 @@ export default {
     }
     async function searchQqSong() {
       let res = await homeApi.getQqSearchInfo(searchWord.value);
-
-    
+      let songInfo = res?.data?.response?.data?.song?.itemlist ?? [];
+      songInfo = songInfo.map((item) => {
+        return {
+          ...item,
+          ar: [{
+            creatorItem
+: 
+item.singer}],
+          musicType: "qq"
+        };
+      });
+      songResult.value = songInfo;
       console.log(res,"qq音乐数据");
     }
     async function searchWySong() {
@@ -156,6 +167,7 @@ export default {
           ...item,
           ar: item.artists,
           al: item.album,
+          musicType: "wy"
         };
       });
       songResult.value = songInfo;
@@ -163,26 +175,37 @@ export default {
     }
     function quickSearch(data) {
       searchWord.value = data;
-      onSearch();
+      onSearch(musicSerachType.value);
     }
     async function setMusic(eventData) {
       let item = eventData.value;
-      item.al = item.album;
-      item.al.picUrl = item.album.artist.img1v1Url;
-      let respData = await musicDetail.getSongDetail(item.id);
-      console.log(respData, "song详情");
-      let songUrl = respData?.data?.songs[0]?.al?.picUrl;
-      item.al.picUrl = songUrl;
-      // item.al.name = item.album.artist.name;
-      // item.dt = item.duration;
-      // item.ar = item.artists;
+      if(item.musicType==='wy'){
+        item.al = item.album;
+        item.al.picUrl = item.album.artist.img1v1Url;
+        let respData = await musicDetail.getSongDetail(item.id);
+        console.log(respData, "song详情");
+        let musicPicUrl = respData?.data?.songs[0]?.al?.picUrl ?? '';
+        item.al.picUrl = musicPicUrl;
+        // item.al.name = item.album.artist.name;
+        // item.dt = item.duration;
+        // item.ar = item.artists;
+      }
+      else{
+        console.log("音乐",item);
+        let respData = await qqMusicDetail.getSongPicURl(item.mid);
+        let musicPicUrl = respData?.data.response.data.imageUrl ?? '';
+        item.al={};
+        item.al.picUrl = musicPicUrl;
+        console.log("查询qq音乐详情",respData);
+      }
       let data = reactive(item);
-      store.commit("pushPlayList", data);
-      console.log(playList.value.length ?? 0, "下标值");
-      store.commit(
-        "setPlayListIndex",
-        playList.value.length !== 0 ? playList.value.length - 1 : 0
-      );
+        store.commit("pushPlayList", data);
+        console.log(playList.value.length ?? 0, "下标值");
+        store.commit(
+          "setPlayListIndex",
+          playList.value.length !== 0 ? playList.value.length - 1 : 0
+        );
+      
     }
     function MusicTypeChange() {
       musicSerachType.value = !musicSerachType.value;
@@ -206,6 +229,13 @@ export default {
 </script>
 <style lang="less" scoped>
 .musicSearch {
+  /deep/ .van-field__body{
+      input { 
+        -webkit-user-select: none;
+        user-select:none;
+      }
+  }
+
   width: 100%;
   height: 100vh;
   .musicsSerachTop {

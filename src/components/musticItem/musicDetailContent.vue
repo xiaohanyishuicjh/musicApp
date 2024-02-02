@@ -85,7 +85,7 @@
         </svg>
       </div>
       <div class="footerContent">
-        <input
+        <!-- <input
           class="range"
           type="range"
           min="0"
@@ -93,7 +93,10 @@
           step="0.5"
           v-model="currentTime"
           @input="changeValue"
-        />
+        /> -->
+
+        <van-slider v-model="currentTime" @change="changeValue" step="0.5" min="0"
+          :max="duration"/>
       </div>
       <!-- <van-progress :percentage="calcProgress" stroke-width="8" :show-pivot="false" /> -->
 
@@ -180,7 +183,7 @@ export default {
      let calcProgress = computed(() =>{
       let currentTime = store.state.currentTime;
       let duration = store.state.duration;
-      console.log(currentTime / duration,"进度值");
+      //console.log(currentTime / duration,"进度值");
       return (currentTime / duration)*100;
      });
     let isLyricShow = ref(false);
@@ -191,7 +194,7 @@ export default {
         let sec = item.slice(4, 6);
         let mill = item.slice(7, 10);
         let lrc = item.slice(11, item.length);
-        console.log(min, sec, mill, lrc, "拆分后的时间和歌词");
+        //console.log(min, sec, mill, lrc, "拆分后的时间和歌词");
         if (isNaN(Number(mill))) {
           mill = item.slice(7, 9);
           lrc = item.slice(10, item.length);
@@ -226,6 +229,7 @@ export default {
           if(songPlaySortMethods.value===0){
             //顺序播放
             setPlayMusicIndex(1);//下一首
+            alert("播放下一首");
           }
           else if(songPlaySortMethods.value===1){
             //单首循环
@@ -283,9 +287,8 @@ export default {
       isLyricShow.value = !isLyricShow.value;
     }
     function changeValue(value){
-
       console.log(value,"滑块的值");
-      let currentTime = value.target._value;
+      let currentTime = value;
       //store.commit("setCurrentTime", currentTime);
       store.commit("setPlayCurrentTime", currentTime);
     }
@@ -470,6 +473,7 @@ export default {
     flex-direction: column;
     justify-content: space-around;
     align-items: center;
+    overflow: hidden;
     .range {
       width: 100%;
       height: 0.1rem;

@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import store from "@/store/index.js";
+import LocalCache from "@/util/localStorageCache";
+const isLogin = LocalCache.getCache("isLogin") ?? '';
 const routes = [
   {
     path: '/',
@@ -48,7 +50,7 @@ const routes = [
     component: () => import(/* webpackChunkName: "about" */ '@/components/userInfo/userInfo.vue'),
     beforeEnter: (to,form,next) => {
       console.log(store,"信息")
-      if(!store.state.isLogin && to.path === '/userInfo'){
+      if(!(store.state.isLogin ||isLogin) && to.path === '/userInfo'){
         console.log(to,"信息")
         next('/login');
       }
