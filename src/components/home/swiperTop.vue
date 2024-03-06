@@ -25,7 +25,7 @@ export default {
       //获取网易云音乐的轮播图数据
       let res = await homeApi.getHomeBanner(2);
       console.log(res);
-      state.images = res.data.banners ?? [];
+      state.images = res?.data?.banners ?? [];
      
      
     })

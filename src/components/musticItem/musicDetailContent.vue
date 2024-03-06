@@ -95,22 +95,59 @@
           @input="changeValue"
         /> -->
 
-        <van-slider v-model="currentTime" @change="changeValue" step="0.5" min="0"
-          :max="duration"/>
+        <van-slider
+          v-model="currentTime"
+          @change="changeValue"
+          step="0.5"
+          min="0"
+          :max="duration"
+        >
+          <template #button>
+            <!-- class="musicDurationSlider" -->
+            <div class="musicDurationSlider">
+              <svg
+                class="musicDurationSliderIcon"
+                :class="
+                  !isShowPlay
+                    ? 'musicDurationSliderIcon_active'
+                    : 'musicDurationSliderIcon_paused'
+                "
+                aria-hidden="true"
+              >
+                <use xlink:href="#icon-yinle1"></use>
+              </svg>
+            </div>
+          </template>
+        </van-slider>
       </div>
       <!-- <van-progress :percentage="calcProgress" stroke-width="8" :show-pivot="false" /> -->
 
       <div class="footer">
         <!-- 列表循环 -->
-        <svg class="icon" aria-hidden="true" v-show="songPlaySortMethods===0" @click="changeSongPlaySortMethods()">
+        <svg
+          class="icon"
+          aria-hidden="true"
+          v-show="songPlaySortMethods === 0"
+          @click="changeSongPlaySortMethods()"
+        >
           <use xlink:href="#icon-liebiaoxunhuan"></use>
         </svg>
         <!-- 随机循环 -->
-        <svg class="icon" aria-hidden="true" v-show="songPlaySortMethods===2" @click="changeSongPlaySortMethods()">
+        <svg
+          class="icon"
+          aria-hidden="true"
+          v-show="songPlaySortMethods === 2"
+          @click="changeSongPlaySortMethods()"
+        >
           <use xlink:href="#icon-suijixunhuan"></use>
         </svg>
         <!-- 单首循环 -->
-        <svg class="icon" aria-hidden="true" v-show="songPlaySortMethods===1" @click="changeSongPlaySortMethods()">
+        <svg
+          class="icon"
+          aria-hidden="true"
+          v-show="songPlaySortMethods === 1"
+          @click="changeSongPlaySortMethods()"
+        >
           <use xlink:href="#icon-danshouxunhuanbofang"></use>
         </svg>
         <!-- 上一首 -->
@@ -152,7 +189,7 @@
 <script>
 import { Vue3Marquee } from "vue3-marquee";
 import { useStore } from "vuex";
-import { computed, ref,watch } from "vue";
+import { computed, ref, watch } from "vue";
 // @ is an alias to /src
 export default {
   name: "musicDetailContent",
@@ -167,25 +204,27 @@ export default {
     console.log("函数开始");
     let lyricWord = ref(null);
     let musicLyricDiv = ref(null);
-     const currentTime = computed({
-      get(){
-        return store.state.currentTime
+    const currentTime = computed({
+      get() {
+        return store.state.currentTime;
       },
-      set(newValue){
-            //store.commit("setCurrentTime", newValue);
-          store.commit("setPlayCurrentTime", newValue);
-      }
-     } );
-     const songPlaySortMethods = computed(() => store.state.songPlaySortMethods);
-     const playList = computed(() => store.state.playList);
+      set(newValue) {
+        //store.commit("setCurrentTime", newValue);
+        store.commit("setPlayCurrentTime", newValue);
+      },
+    });
+    const songPlaySortMethods = computed(() => store.state.songPlaySortMethods);
+    const playList = computed(() => store.state.playList);
     const playListIndex = computed(() => store.state.playListIndex);
-     const duration = computed(() => store.state.duration);
-     let calcProgress = computed(() =>{
+    const playMusicInfo = computed(() => store.state.playMusicInfo);
+    const playMusicId = computed(() => store.state.playMusicInfo.id);
+    const duration = computed(() => store.state.duration);
+    let calcProgress = computed(() => {
       let currentTime = store.state.currentTime;
       let duration = store.state.duration;
       //console.log(currentTime / duration,"进度值");
-      return (currentTime / duration)*100;
-     });
+      return (currentTime / duration) * 100;
+    });
     let isLyricShow = ref(false);
     const lyricData = computed(() => {
       let lyricInfo = store.state.lyricData?.lyric ?? "";
@@ -210,7 +249,7 @@ export default {
         };
       });
       calcInfo.forEach((item, index) => {
-        if (index === calcInfo.length - 1 ||isNaN(Number(item.time))) {
+        if (index === calcInfo.length - 1 || isNaN(Number(item.time))) {
           item.nextTime = 9999999; //下一句歌词的时间
         } else {
           item.nextTime = calcInfo[index + 1].time; //下一句歌词的时间
@@ -225,25 +264,26 @@ export default {
     watch(
       () => currentTime,
       () => {
-        if(currentTime.value===duration.value){
-          if(songPlaySortMethods.value===0){
+        if (currentTime.value === duration.value) {
+          if (songPlaySortMethods.value === 0) {
             //顺序播放
-            setPlayMusicIndex(1);//下一首
-            alert("播放下一首");
-          }
-          else if(songPlaySortMethods.value===1){
+            setPlayMusicIndex(1); //下一首
+            //alert("播放下一首");
+          } else if (songPlaySortMethods.value === 1) {
             //单首循环
             store.commit("setPlayCurrentTime", 0);
             store.commit("setCurrentTime", 0);
             playMusic();
-          }
-          else{
+          } else {
             //随机循环
-            let randomNum = Math.floor(Math.random() * playList.value.length-1);
-            console.log(randomNum,"随机数");
-            store.commit("setPlayListIndex", randomNum);
+            let randomNum = Math.floor(
+              Math.random() * playList.value.length - 1
+            );
+            console.log(randomNum, "随机数");
+            store.commit('setCurrentPlayMusic', playList.value[randomNum]);
+            //store.commit("setPlayListIndex", randomNum);
           }
-          if(musicLyricDiv.value){
+          if (musicLyricDiv.value) {
             musicLyricDiv.value.scrollTop = 0;
           }
           return;
@@ -252,17 +292,15 @@ export default {
         //showUserUpdateMessage.value = true;
         //console.log(lyricWord.value,"活动的歌词");
         //console.log(musicLyricDiv,"列表");
-        let findItem = lyricWord.value.find((lyricItem)=>{
-            return lyricItem.className === 'active';
+        let findItem = lyricWord.value.find((lyricItem) => {
+          return lyricItem.className === "active";
         });
         console.log(findItem);
-        if(findItem&&findItem.offsetTop>300){
-          if(musicLyricDiv.value){
-            musicLyricDiv.value.scrollTop = String(findItem.offsetTop-300);
+        if (findItem && findItem.offsetTop > 300) {
+          if (musicLyricDiv.value) {
+            musicLyricDiv.value.scrollTop = String(findItem.offsetTop - 300);
           }
-
         }
-
       },
       {
         deep: true,
@@ -286,42 +324,52 @@ export default {
     function setShowLyric() {
       isLyricShow.value = !isLyricShow.value;
     }
-    function changeValue(value){
-      console.log(value,"滑块的值");
+    function changeValue(value) {
+      console.log(value, "滑块的值");
       let currentTime = value;
       //store.commit("setCurrentTime", currentTime);
       store.commit("setPlayCurrentTime", currentTime);
     }
-    function setPlayMusicIndex(value){
-      console.log(value,"上一首还是下一首");
-      console.log(playList.value,playListIndex.value,"缓存歌曲的值");
-      //顺序播放的场景
-      if(value+playListIndex.value<0){
+    function setPlayMusicIndex(value) {
+      console.log(value, "上一首还是下一首");
+      console.log(playList.value, playListIndex.value, "缓存歌曲的值");
+      console.log(playMusicId.value,"当前播放的歌曲id");
+      let findIndex =  playList.value.findIndex((item)=>{
+        return item.id === playMusicId.value;
+      });
+      console.log(findIndex, "寻找的下标");
+      if(findIndex!==-1){
+        //顺序播放的场景
+      if (value + findIndex < 0) {
         //上一首到最后一个
-        store.commit("setPlayListIndex", playList.value.length-1);
-      }
-      else if(value+playListIndex.value>playList.value.length-1){
+        store.commit('setCurrentPlayMusic', playList.value[playList.value.length - 1]);
+        //store.commit("setPlayListIndex", playList.value.length - 1);
+      } else if (value + findIndex > playList.value.length - 1) {
         //下一首到第一首
-        store.commit("setPlayListIndex", 0);
+        store.commit('setCurrentPlayMusic', playList.value[0]);
+        //store.commit("setPlayListIndex", 0);
+      } else {
+        //正常切换上下首
+        store.commit('setCurrentPlayMusic', playList.value[value + findIndex]);
+        //store.commit("setPlayListIndex", value + findIndex);
+      }
       }
       else{
-        //正常切换上下首
-        store.commit("setPlayListIndex", value+playListIndex.value);
+        store.commit('setCurrentPlayMusic', playList.value[0]);
+        //store.setCurrentPlayMusic(playList.value[0]);
       }
     }
-    function changeSongPlaySortMethods(){
-      let value =0;
-      if(songPlaySortMethods.value +1>2){
-        value =0;
-      }
-      else{
-        value = songPlaySortMethods.value +1;
+    function changeSongPlaySortMethods() {
+      let value = 0;
+      if (songPlaySortMethods.value + 1 > 2) {
+        value = 0;
+      } else {
+        value = songPlaySortMethods.value + 1;
       }
       store.commit("setSongPlaySortMethods", value);
     }
-    function showMusicPopover(){
+    function showMusicPopover() {
       store.commit("setShowMusicListPopover", true);
-
     }
     return {
       closeSongDetailContent,
@@ -340,7 +388,9 @@ export default {
       setPlayMusicIndex,
       songPlaySortMethods,
       changeSongPlaySortMethods,
-      showMusicPopover
+      showMusicPopover,
+      playMusicInfo,
+      playMusicId
     };
   },
 };
@@ -349,6 +399,14 @@ export default {
 .musicDetailContent {
   width: 100%;
   height: 100%;
+}
+@keyframes rotate_ar {
+  0% {
+    transform: rotateZ(0deg);
+  }
+  100% {
+    transform: rotateZ(360deg);
+  }
 }
 .detailTop {
   width: 100%;
@@ -438,14 +496,6 @@ export default {
   .img_ar_paused {
     animation-play-state: paused;
   }
-  @keyframes rotate_ar {
-    0% {
-      transform: rotateZ(0deg);
-    }
-    100% {
-      transform: rotateZ(360deg);
-    }
-  }
 }
 .detailFooter {
   width: 100%;
@@ -507,6 +557,21 @@ export default {
       color: #fff;
       font-size: 0.5rem;
     }
+  }
+}
+.musicDurationSlider {
+  width: 0.5rem;
+  height: 0.5rem;
+  .musicDurationSliderIcon {
+    width: 0.5rem;
+    height: 0.5rem;
+    animation: rotate_ar 10s linear infinite;
+  }
+  .musicDurationSliderIcon_active {
+    animation-play-state: running;
+  }
+  .musicDurationSliderIcon_paused {
+    animation-play-state: paused;
   }
 }
 </style>

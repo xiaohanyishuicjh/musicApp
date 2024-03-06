@@ -31,7 +31,7 @@ export default {
       let musicDetailData = await musicDetail.getMusicDetail(id);
       console.log(musicDetailData,"歌曲数据");
       console.log(id);
-      state.playList = musicDetailData.data.playlist;
+      state.playList = musicDetailData?.data?.playlist ??[];
       //sessionStorage.setItem("musicDetail",JSON.stringify(state));
       console.log(detailIsPedding,"值");
       detailIsPedding.value = true;

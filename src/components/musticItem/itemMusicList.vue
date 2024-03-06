@@ -73,7 +73,7 @@ export default {
       let songList =props.songList;
       console.log(songList,"歌曲列表数据2");
       store.commit('setPlayList', songList);
-      store.commit('setPlayListIndex', data.index);
+      store.commit('setCurrentPlayMusic', data);
     }
     return {playMusic}
   },

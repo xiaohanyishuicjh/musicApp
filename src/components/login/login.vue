@@ -3,9 +3,17 @@
     <svg class="icon" aria-hidden="true" @click="$router.go(-1)">
       <use xlink:href="#icon-fanhui"></use>
     </svg>
+    <div class="erorMessage">
+      
+      <svg class="erorMessageIcon" aria-hidden="true" @click="$router.go(-1)">
+      <use xlink:href="#icon-icon--jinggao"></use>
+    </svg>
+    {{"账号密码由于网易安全设置无法使用，请扫码登录"}}
+    </div>
     <van-form @submit="onSubmit">
       <van-cell-group inset>
         <van-field
+        :disabled="true"
           v-model="phoneNumber"
           name="phoneNumber"
           label="手机号"
@@ -14,6 +22,7 @@
         />
 
         <van-field
+         :disabled="true"
           v-model="captcha"
           name="captcha"
           label="验证码"
@@ -22,6 +31,7 @@
         >
           <template #button>
             <van-button size="small" type="primary" @click="getCaptchaInfo"
+            :disabled="true"
               >发送验证码</van-button
             >
           </template>
@@ -109,7 +119,13 @@ export default {
         const statusRes = await userInfoApi.checkQrCodeStatus(qrCodeKey.value);
         console.log(statusRes, "二维码状态");
         if (statusRes.data.code === 800) {
-          alert('二维码已过期,请重新获取')
+          //alert('二维码已过期,请重新获取')
+          showNotify({
+            message: "二维码已过期,请重新扫码登录",
+            color: "#fff",
+            background: "#f1000",
+            className: "loginNotify",
+          });
           clearInterval(timer.value)
         }
         if (statusRes.data.code === 803) {
@@ -164,4 +180,22 @@ export default {
   text-align: center;
 }
 </style>
-<style lang="less" scoped></style>
+<style lang="less" scoped>
+.qrImg{
+  display: flex;
+  justify-content: center;
+
+}
+.erorMessage{
+  width:100%;
+  display:flex;
+  justify-content: center;
+  align-items: center;
+}
+.erorMessageIcon{
+  width:0.25rem;
+  height: 0.25rem;
+  margin-right: 0.25rem;
+
+}
+</style>

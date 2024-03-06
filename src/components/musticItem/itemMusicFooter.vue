@@ -2,12 +2,12 @@
   <div class="itemMusicFooter">
     <div class="footerLeft">
       <img
-        :src="playList[playListIndex]?.al?.picUrl"
+        :src="playMusicInfo?.al?.picUrl"
         alt=""
         @click="setShowSongDetailContent"
       />
       <div class="musicDescription">
-        <p>{{ playList[playListIndex]?.name }}</p>
+        <p>{{ playMusicInfo?.name }}</p>
         <span>{{ "横滑切换上下首" }}</span>
       </div>
     </div>
@@ -47,7 +47,7 @@
       :style="{ height: '100%', width: '100%' }"
     >
       <musicDetailContent
-        :musicInfo="playList[playListIndex]"
+        :musicInfo="playMusicInfo"
         :isPlay="isShowPlay"
         @playMusic="playMusic"
         @stopMusic="stopMusic"
@@ -73,6 +73,7 @@ import qqMusicDetail from "@/request/api/qqMusicDetail";
 import musicDetailContent from "@/components/musticItem/musicDetailContent.vue";
 import { useStore } from "vuex";
 import checkIsIOS from "@/util/util";
+import { showNotify } from "vant";
 export default {
   name: "itemMusicFooter",
   setup() {
@@ -83,6 +84,7 @@ export default {
     const showMusicListPopover = computed(() => store.state.showMusicListPopover);
     const playCurrentTime = computed(() => store.state.playCurrentTime);
     const playList = computed(() => store.state.playList);
+    const playMusicInfo = computed(() => store.state.playMusicInfo);
     const playListIndex = computed(() => store.state.playListIndex);
     const isShowPlay = computed(() => store.state.isShowPlay);
     const duration = computed(() => store.state.duration);
@@ -107,22 +109,12 @@ export default {
     //     deep: true,
     //   }
     // );
-    watch(
-      () => [playListIndex,playList],
-      () => {
-        // [playListIndexNew,playListNew],[playListIndexOld,playListOld]
-        // 显示用户数据已修改的提示信息
-        //showUserUpdateMessage.value = true;
-        // if(playListIndexOld.value===playListIndexNew.value&&playListOld.value.length===playListNew.value.length&&){
-        //   //说明歌曲数据数组变化
-        //   calcMusicSrcUrl(playList.value[playListIndex.value].id);
-        // }
-        // else{
-
-        // }
-        console.log(playList.value, "cjh");
-        console.log(playList, "cjh");
-        calcMusicSrcUrl(playList.value[playListIndex.value]);
+    watch(playMusicInfo,
+      (newVal,oldVal) => {
+        if(newVal.id!==oldVal.id){
+          calcMusicSrcUrl(newVal);
+        }
+        
       },
       {
         deep: true,
@@ -139,10 +131,15 @@ export default {
           playAudio.value.readyState > 2 &&
           playAudio.value.currentTime !== playCurrentTime.value
         ) {
-          console.log(playCurrentTime.value, "当前的时间");
+          //console.log(playCurrentTime.value, "当前的时间");
           playAudio.value.currentTime = playCurrentTime.value;
           //playMusic();
         }
+        if(playAudio.value.paused &&
+          playAudio.value.currentTime !== playCurrentTime.value){
+            playAudio.value.currentTime = playCurrentTime.value;
+            playMusic();
+          }
       },
       {
         deep: true,
@@ -218,11 +215,42 @@ export default {
       stopMusic();
       if(musicData.musicType==='qq'){
         let data = {
-        id: musicData.mid,
+        id: musicData.songmid,
         type: "128",
       };
+      console.log(data, "传递的数据");
       let resultData = await qqMusicDetail.getMusicItemSrcUrl(data);
       console.log(resultData, "歌曲信息");
+      let url = resultData?.data?.data ?? "";
+      let errMsg = resultData?.data?.errMsg ?? "";
+      if(errMsg !== '') {
+        showNotify({
+            message: errMsg,
+            color: "#fff",
+            background: "#697823",
+          });
+          return;
+      }
+      console.log(url, "链接");
+      if(url===''){
+        store.commit("setIsShowPlay", false);
+        showNotify({
+            message: "获取歌曲链接失败",
+            color: "#fff",
+            background: "#697823",
+          });
+      }
+      else{
+        musicSrcUrl.value = url;
+        playAudio.value.load();
+        store.commit("setIsShowPlay", false);
+        store.commit("setCurrentTime", 0);
+        store.commit("setPlayCurrentTime", 0);
+        songReady.value = false;
+        store.dispatch("getQqLyric", musicData.songmid);
+        playMusic();
+      }
+      
       }
       else{
       let data = {
@@ -239,7 +267,7 @@ export default {
       store.commit("setCurrentTime", 0);
       store.commit("setPlayCurrentTime", 0);
       songReady.value = false;
-      store.dispatch("getLyric", musicData.id);
+      store.dispatch("getWyLyric", musicData.id);
       playMusic();
       }
       
@@ -354,7 +382,8 @@ export default {
     }
     function setMusic(data){
       console.log(data,"歌曲传值列表数据");
-      store.commit('setPlayListIndex', data.index);
+      store.commit('setCurrentPlayMusic', data);
+      //store.commit('setPlayListIndex', data.index);
     }
     function showMusicPopover(){
       store.commit("setShowMusicListPopover", true);
@@ -383,7 +412,8 @@ export default {
       showMusicPopover,
       isIos,
       audioPlay,
-      handleEnded
+      handleEnded,
+      playMusicInfo
     };
   },
   components: {

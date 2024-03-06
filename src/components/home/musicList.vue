@@ -48,7 +48,7 @@ export default {
       //获取网易云音乐的轮播图数据
       let res = await homeApi.getMusicList(10);
       console.log(res);
-      state.musicList = res.data.result ?? [];
+      state.musicList = res?.data?.result ?? [];
     });
     function changeCount(num) {
         if(num >= 100000000){

@@ -21,7 +21,7 @@ qqMusicDetail.getMusicItemSrcUrl= function (data){
    
    return musicApi.qqService({
       method: 'get',
-      url: `getMusicVKey?songmid=${data.id}&resType=play&quality=${data.qualityType}`,
+      url: `song/url?id=${data.id}&type=320&mediaId=${data.id}`,
 
    })
   };
@@ -29,7 +29,7 @@ qqMusicDetail.getMusicItemSrcUrl= function (data){
   qqMusicDetail.getMusicItemLyric= function (id){
    return musicApi.qqService({
       method: 'get',
-      url: `/lyric?id=${id}`,
+      url: `/lyric?songmid=${id}`
    })
   };
   //获取song详情页数据

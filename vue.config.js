@@ -12,4 +12,16 @@ module.exports = defineConfig({
       }),
     ],
   },
+  devServer:{
+    proxy:{
+        ["/qqApi"]:{
+        target:'http://172.20.10.3:3300',
+          changeOrigin:true,
+            pathRewrite: {
+                ['^' + "/qqApi"]: ''
+            }
+        }
+    }
+
+}
 })

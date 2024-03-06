@@ -1,5 +1,6 @@
 import { createStore } from 'vuex'
 import musicDetail from "@/request/api/wyMusicDetail";
+import qqMusicDetail from "@/request/api/qqMusicDetail";
 export default createStore({
   state: {
     playList: [{
@@ -10,9 +11,18 @@ export default createStore({
         picUrl:"https://p2.music.126.net/8cxEF5lBfKLWbAqrF0yVmg==/109951166032666632.jpg",
         tns: []
       },
+      name:"歌曲名",
       id: 31445474
     }],
     playListIndex: 0,//默认下标为0
+    playMusicInfo:{
+      al: {
+        picUrl: ''
+      },
+      id: '',
+      name: '',
+      ar: []
+    },
     isShowPlay: true,
     showSongDetailContent: false,//是否显示歌曲详情页
     lyricData:{},//歌词信息
@@ -35,6 +45,9 @@ export default createStore({
     },
     showSongDetailContent(state){
       return state.showSongDetailContent;
+    },
+    playMusicId(state){
+      return state.playMusicInfo.id;
     }
   },
   mutations: {
@@ -49,6 +62,11 @@ export default createStore({
     pushPlayList(state,data){
       console.log(data,"歌曲數據");
       state.playList.push(data);
+    },
+    //根据下标删除歌曲
+    deletePlyaListByIndex(state,data){
+      console.log(data,"下标值");
+      state.playList.splice(data,1);
     },
     setPlayListIndex(state,data){
       console.log(data,"下标");
@@ -65,7 +83,7 @@ export default createStore({
     },
     //设置当前的时间
     setCurrentTime(state,data){
-      console.log(data,"当前的时间");
+      //console.log(data,"当前的时间");
       state.currentTime = data;//默认为0
     },
     //设置歌曲总时长
@@ -91,17 +109,30 @@ export default createStore({
     setIsLogin(state,data){
       console.log(data,"是否登录");
       state.isLogin = data;
+    },
+    //设置当前播放的音乐
+    setCurrentPlayMusic(state,data){
+      console.log(data,"当前正在播放的音乐");
+      state.playMusicInfo = data;
     }
   },
   actions: {
-    async getLyric(state,id){
-      let data = await musicDetail.getMusicItemLyric(id);
+    async getWyLyric(state,id){
+        let data = await musicDetail.getMusicItemLyric(id);
+        console.log(data,"歌词");
+        let lyricData = data?.data?.lrc ??{};
+        state.commit("setSongLyric",lyricData);
+    },
+    async getQqLyric(state,id){
+      let data = await qqMusicDetail.getMusicItemLyric(id);
       console.log(data,"歌词");
-      let lyricData = data.data.lrc ??{};
-      state.commit("setSongLyric",lyricData);
-
-
+      let lyricData = data?.data?.data?.lyric ??'';
+      let lyricDataInfo = {
+      };
+      lyricDataInfo.lyric = lyricData;
+      state.commit("setSongLyric",lyricDataInfo);
     }
+
   },
   modules: {
   }

@@ -36,27 +36,49 @@
                 <use xlink:href="#icon-caidan"></use>
               </svg>
             </div>
+              <div class="addMusic" @click.stop="addMusic(item)">
+              <svg class="icon" aria-hidden="true">
+                <use xlink:href="#icon-tianjiayinle_add-music"></use>
+              </svg>
+            </div>
+
+            <div class="deleteMusic" @click.stop="deleteMusic(index)">
+            <svg class="icon" aria-hidden="true">
+            <use xlink:href="#icon-icon_del"></use>
+          </svg>
+          </div>
+
+
           </div>
         </div>
       </div>
 </template>
 <script>
 import { ref } from 'vue';
+import { useStore } from "vuex";
 export default {
   setup(props,ctx) {
+    const store = useStore();
     const message = ref('Hello World');
     console.log(props.songList,"歌曲列表数据1");
-    function setMusic(item,index){
+    function setMusic(item){
       console.log(item,"歌曲数据");
-      let data={
-        value:item,
-        index:index
-      }
-      ctx.emit('playMusic',data)
+      // store.commit('setPlayList', props.songList);
+      // store.commit('setCurrentPlayMusic', item);
+      ctx.emit('playMusic',item)
+    }
+    function addMusic(item){
+      store.commit("pushPlayList", item);
+    }
+    function deleteMusic(index){
+      store.commit("deletePlyaListByIndex", index);
+      
     }
     return {
       message,
-      setMusic
+      setMusic,
+      addMusic,
+      deleteMusic
     };
   
   },

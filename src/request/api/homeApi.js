@@ -25,7 +25,7 @@ homeApi.getMusicList = function (number){
   homeApi.getQqSearchInfo= function (word){
    return musicApi.qqService({
       method: 'get',
-      url: `/getSearchByKey?key=${encodeURIComponent(word)}`,
+      url: `/search?key=${word}`,
    })
   };
 export default homeApi;

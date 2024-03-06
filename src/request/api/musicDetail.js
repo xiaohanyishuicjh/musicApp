@@ -18,11 +18,9 @@ musicDtail.getMusicItemlist= function (data){
   };
   //获取歌单所有歌曲
 musicDtail.getMusicItemSrcUrl= function (data){
-   
    return musicApi.wyService({
       method: 'get',
       url: `/song/url/v1?id=${data.id}&level=${data.type}&cookie=${cookieToken}`,
-
    })
   };
   //获取歌词

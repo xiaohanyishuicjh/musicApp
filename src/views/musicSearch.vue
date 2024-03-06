@@ -11,11 +11,11 @@
         @search="onSearch(musicSerachType)"
         @cancel="onCancel"
       >
-        <!-- <template #right-icon>
+        <template #right-icon>
           <div @click="MusicTypeChange">
             {{ musicSerachType ? "网易云音乐" : "qq音乐" }}
           </div>
-        </template> -->
+        </template>
       </van-search>
       <div class="rightSearch" @click="onSearch(musicSerachType)">搜索</div>
     </div>
@@ -90,7 +90,7 @@ import musicSongList from "@/views/musicSongList.vue";
 import LocalCache from "@/util/localStorageCache";
 import homeApi from "@/request/api/homeApi";
 import musicDetail from "@/request/api/wyMusicDetail";
-import qqMusicDetail from "@/request/api/qqMusicDetail";
+//import qqMusicDetail from "@/request/api/qqMusicDetail";
 import { useStore } from "vuex";
 export default {
   name: "musicSearch",
@@ -144,19 +144,22 @@ export default {
     }
     async function searchQqSong() {
       let res = await homeApi.getQqSearchInfo(searchWord.value);
-      let songInfo = res?.data?.response?.data?.song?.itemlist ?? [];
+      console.log(res, "返回的结果");
+      let songInfo = res?.data?.data?.list ?? [];
       songInfo = songInfo.map((item) => {
         return {
           ...item,
-          ar: [{
-            creatorItem
-: 
-item.singer}],
+          ar: item.singer,
+          id: item.songmid,
+        name: item.songname,
+        al:{
+
+        },
           musicType: "qq"
         };
       });
       songResult.value = songInfo;
-      console.log(res,"qq音乐数据");
+      console.log(songInfo,"qq音乐数据");
     }
     async function searchWySong() {
       let res = await homeApi.getWySearchInfo(searchWord.value);
@@ -178,7 +181,7 @@ item.singer}],
       onSearch(musicSerachType.value);
     }
     async function setMusic(eventData) {
-      let item = eventData.value;
+      let item = eventData;
       if(item.musicType==='wy'){
         item.al = item.album;
         item.al.picUrl = item.album.artist.img1v1Url;
@@ -192,19 +195,36 @@ item.singer}],
       }
       else{
         console.log("音乐",item);
-        let respData = await qqMusicDetail.getSongPicURl(item.mid);
-        let musicPicUrl = respData?.data.response.data.imageUrl ?? '';
+        //设置qq图片url
+        const maxAge = 2592000;
+        const size = '300x300';
+        let qqImgUrl = `https://y.qq.com/music/photo_new/T002R${size}M000${item.albummid}.jpg?max_age=${maxAge}`
+        //https://y.qq.com/music/photo_new/T002R300x300M000003EYehp2AkYdo_1.jpg?max_age=2592000
+        //let respData = await qqMusicDetail.getSongPicURl(item.albummid);
+        let musicPicUrl = qqImgUrl;
         item.al={};
         item.al.picUrl = musicPicUrl;
-        console.log("查询qq音乐详情",respData);
+        item.id = item.songmid;
+        item.name= item.songname;
+        //console.log("查询qq音乐详情",respData);
       }
       let data = reactive(item);
+      console.log(data, "qq音乐单个数据");
+      let findIndex = playList.value.findIndex((findItem)=>{
+        return findItem.id === item.id;
+      })
+      if(findIndex===-1){
         store.commit("pushPlayList", data);
+        store.commit('setCurrentPlayMusic', data);
+      }
+      else{
+        store.commit('setCurrentPlayMusic', data);
+      }
         console.log(playList.value.length ?? 0, "下标值");
-        store.commit(
-          "setPlayListIndex",
-          playList.value.length !== 0 ? playList.value.length - 1 : 0
-        );
+        // store.commit(
+        //   "setPlayListIndex",
+        //   playList.value.length !== 0 ? playList.value.length - 1 : 0
+        // );
       
     }
     function MusicTypeChange() {
