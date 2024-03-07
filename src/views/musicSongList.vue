@@ -1,95 +1,90 @@
 <template>
   <div class="songList">
-        <div
-          class="songItem"
-          v-for="(item, index) in songList"
-          :key="index"
-          @click="setMusic(item,index)"
-        >
-          <div class="songLeft">
-            <div class="songIndex">
-              {{ index }}
-            </div>
-            <div class="songInfo">
-              <div class="songName">
-                {{ item.name }}
-              </div>
-              <div class="songCreator">
-                <span
-                  v-for="(creatorItem, creatorItemIndex) in item.ar"
-                  :key="creatorItemIndex"
-                >
-                  {{ creatorItem.name }}
-                </span>
-              </div>
-            </div>
+    <div
+      class="songItem"
+      v-for="(item, index) in songList"
+      :key="index"
+      @click="setMusic(item, index)"
+    >
+      <div class="songLeft">
+        <div class="songIndex">
+          {{ index }}
+        </div>
+        <div class="songInfo">
+          <div class="songName">
+            {{ item.name }}
           </div>
-          <div class="songRight">
-            <!-- v-show="item.mv!==0" -->
-            <div class="MvControl">
-              <svg class="icon" aria-hidden="true">
-                <use xlink:href="#icon-bofangMV"></use>
-              </svg>
-            </div>
-            <div class="songDetail">
-              <svg class="icon" aria-hidden="true">
-                <use xlink:href="#icon-caidan"></use>
-              </svg>
-            </div>
-              <div class="addMusic" @click.stop="addMusic(item)">
-              <svg class="icon" aria-hidden="true">
-                <use xlink:href="#icon-tianjiayinle_add-music"></use>
-              </svg>
-            </div>
-
-            <div class="deleteMusic" @click.stop="deleteMusic(index)">
-            <svg class="icon" aria-hidden="true">
-            <use xlink:href="#icon-icon_del"></use>
-          </svg>
-          </div>
-
-
+          <div class="songCreator">
+            <span
+              v-for="(creatorItem, creatorItemIndex) in item.ar"
+              :key="creatorItemIndex"
+            >
+              {{ creatorItem.name }}
+            </span>
           </div>
         </div>
       </div>
+      <div class="songRight">
+        <!-- v-show="item.mv!==0" -->
+        <div class="MvControl">
+          <svg class="icon" aria-hidden="true">
+            <use xlink:href="#icon-bofangMV"></use>
+          </svg>
+        </div>
+        <div class="songDetail">
+          <svg class="icon" aria-hidden="true">
+            <use xlink:href="#icon-caidan"></use>
+          </svg>
+        </div>
+        <div class="addMusic" @click.stop="addMusic(item)">
+          <svg class="icon" aria-hidden="true">
+            <use xlink:href="#icon-tianjiayinle_add-music"></use>
+          </svg>
+        </div>
+        <div class="deleteMusic" @click.stop="deleteMusic(index)">
+          <svg class="icon" aria-hidden="true">
+            <use xlink:href="#icon-icon_del"></use>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 <script>
-import { ref } from 'vue';
+import { ref } from "vue";
 import { useStore } from "vuex";
 export default {
-  setup(props,ctx) {
+  setup(props, ctx) {
     const store = useStore();
-    const message = ref('Hello World');
-    console.log(props.songList,"歌曲列表数据1");
-    function setMusic(item){
-      console.log(item,"歌曲数据");
-      // store.commit('setPlayList', props.songList);
-      // store.commit('setCurrentPlayMusic', item);
-      ctx.emit('playMusic',item)
+    const message = ref("Hello World");
+    console.log(props.songList, "歌曲列表数据1");
+    function setMusic(item) {
+      console.log(item, "歌曲数据");
+      store.commit("setPlayList", props.songList); //将歌曲列表设置到vuex
+      ctx.emit("playMusic", item);
     }
-    function addMusic(item){
-      store.commit("pushPlayList", item);
+    function addMusic(item) {
+      store.commit("pushPlayList", item); //将歌曲设置到播放列表的后面
+      ctx.emit("playMusic", item); //播放该音乐
     }
-    function deleteMusic(index){
-      store.commit("deletePlyaListByIndex", index);
-      
+    function deleteMusic(index) {
+      store.commit("deletePlyaListByIndex", index); //删除音乐
     }
     return {
       message,
       setMusic,
       addMusic,
-      deleteMusic
+      deleteMusic,
     };
-  
   },
-    props: {
+  props: {
     songList: {
       type: Array,
       default: () => {
         return [];
       },
-    }
-  }
+    },
+  },
 };
 </script>
 <style lang="less" scoped>

@@ -21,40 +21,6 @@
         >
       </div>
     </div>
-    <!-- <div class="songList">
-      <div class="songItem" v-for="(item, index) in songList" :key="index">
-        <div class="songLeft" @click="playMusic(index)">
-          <div class="songIndex">
-            {{ index }}
-          </div>
-          <div class="songInfo">
-            <div class="songName">
-              {{ item.name }}
-            </div>
-            <div class="songCreator">
-              <span
-                v-for="(creatorItem, creatorItemIndex) in item.ar"
-                :key="creatorItemIndex"
-              >
-                {{ creatorItem.name }}
-              </span>
-            </div>
-          </div>
-        </div>
-        <div class="songRight">
-          <div class="MvControl">
-            <svg class="icon" aria-hidden="true">
-              <use xlink:href="#icon-bofangMV"></use>
-            </svg>
-          </div>
-          <div class="songDetail">
-            <svg class="icon" aria-hidden="true">
-              <use xlink:href="#icon-caidan"></use>
-            </svg>
-          </div>
-        </div>
-      </div>
-    </div> -->
   <musicSongList :song-list="songList" @playMusic="playMusic($event)"></musicSongList>
   </div>
 </template>
@@ -72,7 +38,6 @@ export default {
       console.log(data,"歌曲传值列表数据");
       let songList =props.songList;
       console.log(songList,"歌曲列表数据2");
-      store.commit('setPlayList', songList);
       store.commit('setCurrentPlayMusic', data);
     }
     return {playMusic}

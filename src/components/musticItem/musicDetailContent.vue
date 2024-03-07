@@ -1,6 +1,5 @@
 <template>
   <div class="musicDetailContent">
-    <!-- {{ musicInfo }} -->
     <div class="imgContent">
       <img :src="musicInfo.al.picUrl" alt="" class="bigImg" />
     </div>
@@ -85,16 +84,6 @@
         </svg>
       </div>
       <div class="footerContent">
-        <!-- <input
-          class="range"
-          type="range"
-          min="0"
-          :max="duration"
-          step="0.5"
-          v-model="currentTime"
-          @input="changeValue"
-        /> -->
-
         <van-slider
           v-model="currentTime"
           @change="changeValue"
@@ -103,7 +92,6 @@
           :max="duration"
         >
           <template #button>
-            <!-- class="musicDurationSlider" -->
             <div class="musicDurationSlider">
               <svg
                 class="musicDurationSliderIcon"
@@ -120,8 +108,6 @@
           </template>
         </van-slider>
       </div>
-      <!-- <van-progress :percentage="calcProgress" stroke-width="8" :show-pivot="false" /> -->
-
       <div class="footer">
         <!-- 列表循环 -->
         <svg
@@ -313,13 +299,11 @@ export default {
     function playMusic() {
       console.log("播放音乐");
       ctx.emit("playMusic");
-      //store.commit("setIsShowPlay", false);
     }
     //暂停音乐
     function stopMusic() {
       console.log("暂停音乐");
       ctx.emit("stopMusic");
-      //store.commit("setIsShowPlay", true);
     }
     function setShowLyric() {
       isLyricShow.value = !isLyricShow.value;
@@ -327,7 +311,6 @@ export default {
     function changeValue(value) {
       console.log(value, "滑块的值");
       let currentTime = value;
-      //store.commit("setCurrentTime", currentTime);
       store.commit("setPlayCurrentTime", currentTime);
     }
     function setPlayMusicIndex(value) {
@@ -343,20 +326,16 @@ export default {
       if (value + findIndex < 0) {
         //上一首到最后一个
         store.commit('setCurrentPlayMusic', playList.value[playList.value.length - 1]);
-        //store.commit("setPlayListIndex", playList.value.length - 1);
       } else if (value + findIndex > playList.value.length - 1) {
         //下一首到第一首
         store.commit('setCurrentPlayMusic', playList.value[0]);
-        //store.commit("setPlayListIndex", 0);
       } else {
         //正常切换上下首
         store.commit('setCurrentPlayMusic', playList.value[value + findIndex]);
-        //store.commit("setPlayListIndex", value + findIndex);
       }
       }
       else{
         store.commit('setCurrentPlayMusic', playList.value[0]);
-        //store.setCurrentPlayMusic(playList.value[0]);
       }
     }
     function changeSongPlaySortMethods() {

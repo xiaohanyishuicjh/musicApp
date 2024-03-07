@@ -85,11 +85,6 @@ export default {
   name: "swiperTop",
   components: {},
   setup(props) {
-    //console.log(props.cjh.cjh,"1231");
-    //判断数据如果拿不到的话，就获取sessionStorage里面的数据
-    // if(!props.playList){
-    //     //props.playList = JSON.parse(sessionStorage.getItem('musicDetail')).playList;
-    // }
     console.log(props.playList,"歌曲信息");
     onMounted(async () => {
       //获取网易云音乐的轮播图数据
@@ -101,14 +96,6 @@ export default {
         return (num / 10000).toFixed(1) + "万";
       }
     }
-    // watch(
-    //   () => props.playList,
-    //   (curAge, preAge) => {
-    //     console.log("新值:", curAge, "老值:", preAge);
-    //     curAge && (playListLocal = curAge.playList);
-    //     console.log(playListLocal,"playListLocal");
-    //   }
-    // );
     return { changeCount };
   },
   props: {
